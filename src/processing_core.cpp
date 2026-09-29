@@ -27,7 +27,8 @@ struct ProcessingCore::Impl {
 
 };
 
-ProcessingCore::ProcessingCore() : impl_(std::make_unique<Impl>()) {}
+ProcessingCore::ProcessingCore() : ProcessingCore(std::make_unique<Chunker>(ChunkingPolicy{kMaxChunkTokens, kChunkOverlap, kParagraphPreferenceWindow}),
+std::make_unique<RetrievalEngine>(), std::make_unique<ContextBuilder>()) {}
 
 ProcessingCore::ProcessingCore(std::unique_ptr<ChunkingStrategy> chunking,
                                std::unique_ptr<RetrievalStrategy> retrieval,
