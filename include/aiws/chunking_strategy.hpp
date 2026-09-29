@@ -15,13 +15,12 @@ namespace aiws {
 class ChunkingStrategy {
 public:
     // TODO: make destruction safe through a base-class pointer.
-    ~ChunkingStrategy() = default;
+    virtual ~ChunkingStrategy() = default;
 
     // TODO: make this a required polymorphic operation.
     virtual std::vector<Chunk> chunk(const Document&,
-                                     std::size_t) const {
-        return {};
-    }
+                                     std::size_t) const = 0;
+    
 };
 
 }  // namespace aiws
