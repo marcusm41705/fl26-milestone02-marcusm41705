@@ -13,10 +13,10 @@ namespace aiws {
 // const qualification, and namespace unchanged.
 class ContextStrategy {
 public:
-    // TODO: make destruction safe through a base-class pointer.
+    // Is now destruction safe through a base-class pointer.
     virtual ~ContextStrategy() = default;
 
-    // TODO: make this a required polymorphic operation.
+    // This is now a required polymorphic operation.
     virtual std::vector<ContextItem> build(const std::vector<SearchResult>&,
                                            std::size_t) const = 0;
         

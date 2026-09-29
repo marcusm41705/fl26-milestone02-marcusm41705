@@ -44,11 +44,15 @@ static_assert(std::is_move_assignable_v<aiws::ProcessingCore>);
 int main() {
 using namespace aiws;
 bool threw = false;
-// Testing Null retrieval 
+// Testing Null context strategy 
 //--
 threw = false;
 try {
-    ProcessingCore bad_process(std::make_unique<Chunker>(), std::make_unique<RetrievalEngine>(), std::unique_ptr<ContextStrategy>{});
+    ProcessingCore bad_process(
+        std::make_unique<Chunker>(),
+        std::unique_ptr<RetrievalStrategy>{}, 
+        std::make_unique<ContextBuilder>()
+    );
 }
 catch(const std::invalid_argument&){
     threw = true;
@@ -62,6 +66,9 @@ threw = false;
 try{
     ProcessingCore bad(std::make_unique<Chunker>(), std::make_unique<RetrievalEngine>(), std::unique_ptr<ContextStrategy>{});
 
+}
+catch(const std::invalid_argument&){
+    threw = true;
 }
 catch(...){}
 check(threw, "the null context strategy was rejected");
@@ -115,8 +122,8 @@ std::make_unique<RetrievalEngine>(), std::make_unique<ContextBuilder>());
 Workspace integration_w4;
 integration_w4.add_document(Document{"document", "", "Text ignored by OneChunk."});
 integration_core.rebuild(integration_w4);
-check(integration_core.chunks()[0].text == "alpha marker", "the custom chunk text is stored in the corpus");
 check(integration_core.chunk_count() == 1, "the custom chunk output is stored in corpus");
+check(integration_core.chunks()[0].text == "alpha marker", "the custom chunk text is stored in the corpus");
 auto marker_results = integration_core.search("marker", 1);
 check(marker_results.size() == 1 && marker_results[0].document_id == "document","the default retrieval searches the custom chunk output");
 auto marker_context = integration_core.build_context("marker", 1, 10);

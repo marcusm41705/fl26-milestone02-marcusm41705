@@ -16,7 +16,7 @@ struct ProcessingCore::Impl {
     std::vector<Chunk> chunks;
     CorpusIndex index;
 
-    // M2 TODO: refactor the processing components so ProcessingCore owns and
+    // Refactors the processing components so ProcessingCore owns and
     // uses the supplied strategy objects polymorphically. The concrete M1
     // members below keep the starter's default path runnable.
     std::unique_ptr<ChunkingStrategy> chunking;
@@ -33,7 +33,7 @@ std::make_unique<RetrievalEngine>(), std::make_unique<ContextBuilder>()) {}
 ProcessingCore::ProcessingCore(std::unique_ptr<ChunkingStrategy> chunking,
                                std::unique_ptr<RetrievalStrategy> retrieval,
                                std::unique_ptr<ContextStrategy> context) {
-    // M2 TODO: validate non-null strategies, take exclusive ownership, and
+    // Validates non-null strategies, take exclusive ownership, and
     // compose the processing core from them.
     if(!chunking || !retrieval || !context){
         throw std::invalid_argument("Strategies cannot be null");
