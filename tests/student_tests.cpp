@@ -43,20 +43,7 @@ static_assert(std::is_move_constructible_v<aiws::ProcessingCore>);
 static_assert(std::is_move_assignable_v<aiws::ProcessingCore>);
 int main() {
 using namespace aiws;
-//--
-//Null retrieval strategy
-//--
 bool threw = false;
-try{ 
-    ProcessingCore bad_process(std::make_unique<Chunker>(), std::unique_ptr<RetrievalStrategy>{},std::make_unique<ContextBuilder>());
-}
-catch ( const std::invalid_argument&){
-    threw = true;
-}
-catch(...) {} ///used to catch additional exception types that can't be caught by other catch blocks
-check(threw, "null retrieval strategy was rejected");
-
-//--
 // Testing Null retrieval 
 //--
 threw = false;
@@ -67,7 +54,7 @@ catch(const std::invalid_argument&){
     threw = true;
 }
 catch(...) {}
-check(threw, "the null retrieval strategy was rejected");
+check(threw, "the null context strategy was rejected");
 //--
 // Testing null context strategy
 //--
@@ -98,4 +85,47 @@ check (assign_results.size() == 1 && assign_results[0].document_id == "move", "t
 //--
 //Testing that a failed rebuild will preserve the previous valid corpus
 //--
+Workspace w2;
+w2.add_document(Document{"og", "", "Original search text"});
+ProcessingCore rebuild_core;
+rebuild_core.rebuild(w2);
+const std::size_t old_count = rebuild_core.chunk_count();
+const std::string old_id = rebuild_core.chunks()[0].id;
+const std::string old_text = rebuild_core.chunks()[0].text;
+Workspace bad_w3;
+bad_w3.add_document(Document{"duplicate", "", "First document"});
+bad_w3.add_document(Document{"duplicate", "", "Second document."});
+threw = false;
+try{ 
+    rebuild_core.rebuild(bad_w3);
 }
+catch(const std::invalid_argument&){
+    threw = true;
+}
+catch(...){}
+check(threw, "the duplicate document ID's are rejected");
+check(rebuild_core.chunk_count() == old_count, "The failed rebuild preserves the previous chunk count");
+check(rebuild_core.chunks()[0].id == old_id, "the failed rebuild preserves the previous chunk ID");
+check(rebuild_core.chunks()[0].text == old_text, "The failed rebuild preserves the previous chunk text");
+//--
+// Testing that the custom chunker made integrates with the default retrieval/context
+//--
+ProcessingCore integration_core(std::make_unique<OneChunk>(), 
+std::make_unique<RetrievalEngine>(), std::make_unique<ContextBuilder>());
+Workspace integration_w4;
+integration_w4.add_document(Document{"document", "", "Text ignored by OneChunk."});
+integration_core.rebuild(integration_w4);
+check(integration_core.chunks()[0].text == "alpha marker", "the custom chunk text is stored in the corpus");
+check(integration_core.chunk_count() == 1, "the custom chunk output is stored in corpus");
+auto marker_results = integration_core.search("marker", 1);
+check(marker_results.size() == 1 && marker_results[0].document_id == "document","the default retrieval searches the custom chunk output");
+auto marker_context = integration_core.build_context("marker", 1, 10);
+check(marker_context.size() == 1 && marker_context[0].text == "alpha marker", "the default context builder consumes the custom retrieval output");
+//--
+// Final
+//--
+if(failures != 0){
+    return 1;
+}
+std::cout << "All M2 student tests passed\n";
+} //end of main
