@@ -12,7 +12,9 @@ namespace aiws {
 // Complete this class as a safe abstract polymorphic interface.
 // Keep the class name, operation name, parameter types, return type,
 // const qualification, and namespace unchanged.
-class ChunkingStrategy {
+class ChunkingStrategy { 
+    //An abstract interface used for document chunking
+    // classes derived will provide chunking behavior used by processing core
 public:
     // Is now destruction safe through a base-class pointer.
     virtual ~ChunkingStrategy() = default;

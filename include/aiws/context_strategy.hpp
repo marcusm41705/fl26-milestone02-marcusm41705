@@ -11,7 +11,7 @@ namespace aiws {
 // Complete this class as a safe abstract polymorphic interface.
 // Keep the class name, operation name, parameter types, return type,
 // const qualification, and namespace unchanged.
-class ContextStrategy {
+class ContextStrategy { //abstract interface used for context building strategy
 public:
     // Is now destruction safe through a base-class pointer.
     virtual ~ContextStrategy() = default;

@@ -13,6 +13,7 @@ namespace aiws {
 // Keep the class name, operation name, parameter types, return type,
 // const qualification, and namespace unchanged.
 class RetrievalStrategy {
+    //abstract interface used for ranked retrieval strategies
 public:
     // Is now destruction safe through a base-class pointer.
      virtual ~RetrievalStrategy() = default;

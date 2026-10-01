@@ -12,16 +12,16 @@
 
 namespace aiws {
 
-struct ProcessingCore::Impl {
+struct ProcessingCore::Impl { //exclusive ownership of the selected strategy implementation
     std::vector<Chunk> chunks;
     CorpusIndex index;
 
     // Refactors the processing components so ProcessingCore owns and
     // uses the supplied strategy objects polymorphically. The concrete M1
     // members below keep the starter's default path runnable.
-    std::unique_ptr<ChunkingStrategy> chunking;
+    std::unique_ptr<ChunkingStrategy> chunking; 
     std::unique_ptr<RetrievalStrategy> retrieval;
-    std::unique_ptr<ContextStrategy> context;
+    std::unique_ptr<ContextStrategy> context; //ProcessingCore owns one active strategy for each processing responsibility
     Impl(std::unique_ptr<ChunkingStrategy> chunking_strategy, std::unique_ptr<RetrievalStrategy> retrieval_strategy,
     std::unique_ptr<ContextStrategy> context_strategy): chunking(std::move(chunking_strategy)), retrieval(std::move(retrieval_strategy)), context(std::move(context_strategy)){}
 
@@ -30,6 +30,7 @@ struct ProcessingCore::Impl {
 ProcessingCore::ProcessingCore() : ProcessingCore(std::make_unique<Chunker>(ChunkingPolicy{kMaxChunkTokens, kChunkOverlap, kParagraphPreferenceWindow}),
 std::make_unique<RetrievalEngine>(), std::make_unique<ContextBuilder>()) {}
 
+//installs the milestone 1 compatible default processing strategies
 ProcessingCore::ProcessingCore(std::unique_ptr<ChunkingStrategy> chunking,
                                std::unique_ptr<RetrievalStrategy> retrieval,
                                std::unique_ptr<ContextStrategy> context) {
@@ -52,12 +53,14 @@ std::string ProcessingCore::normalize(const std::string& text) {
 
 void ProcessingCore::rebuild(const Workspace& workspace) {
     std::unordered_set<std::string> document_ids;
-    std::vector<Chunk> next_chunks;
+    std::vector<Chunk> next_chunks; 
+    //builds the replacement state first so that failed rebuilds leave the previous valid corpus the same
     for (std::size_t order = 0; order < workspace.documents().size(); ++order) {
         const auto& doc = workspace.documents()[order];
         if (!document_ids.insert(doc.id()).second) {
             throw std::invalid_argument("duplicate document id: " + doc.id());
         }
+        //dispatch through configured chunk strategy
         auto produced = impl_->chunking->chunk(doc, order);
         next_chunks.insert(next_chunks.end(),
                            std::make_move_iterator(produced.begin()),
@@ -87,7 +90,7 @@ std::size_t ProcessingCore::term_frequency(const std::string& term,
 }
 
 std::vector<SearchResult> ProcessingCore::search(const std::string& query, int k) const {
-    return impl_->retrieval->search(query, k, impl_->chunks, impl_->index);
+    return impl_->retrieval->search(query, k, impl_->chunks, impl_->index); //call retrieval strategy
 }
 
 std::vector<ContextItem> ProcessingCore::build_context(const std::string& query,
