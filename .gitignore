@@ -1,6 +1,5 @@
 #build output
 build/
-include/
 cmake-build-*/
 #Cmake generated
 CMakeFiles/
